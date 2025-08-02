@@ -26,6 +26,83 @@
  * ```
  */
 
-import './index.css';
+import "./index.css";
 
-console.log('👋 This message is being logged by "renderer.ts", included via Vite');
+// Alternative TypeScript implementation for renderer process
+// Use this if you prefer to have your logic in a separate TypeScript file
+
+interface IElectronAPI {
+  selectFolder: () => Promise<string | null>;
+}
+
+declare global {
+  interface Window {
+    electronAPI: IElectronAPI;
+  }
+}
+
+class FolderSelector {
+  private selectFolderBtn: HTMLButtonElement;
+  private folderPathDiv: HTMLDivElement;
+  private errorDiv: HTMLDivElement;
+
+  constructor() {
+    this.selectFolderBtn = document.getElementById(
+      "selectFolderBtn",
+    ) as HTMLButtonElement;
+    this.folderPathDiv = document.getElementById(
+      "folderPath",
+    ) as HTMLDivElement;
+    this.errorDiv = document.getElementById("error") as HTMLDivElement;
+
+    this.init();
+  }
+
+  private init(): void {
+    this.selectFolderBtn.addEventListener("click", () =>
+      this.handleFolderSelection(),
+    );
+  }
+
+  private async handleFolderSelection(): Promise<void> {
+    try {
+      this.setButtonState(true, "Buscando...");
+      this.hideError();
+
+      const selectedPath = await window.electronAPI.selectFolder();
+
+      if (selectedPath) {
+        this.updateFolderPath(selectedPath);
+      }
+    } catch (error) {
+      console.error("Error selecting folder:", error);
+      this.showError(`Error selecting folder: ${(error as Error).message}`);
+    } finally {
+      this.setButtonState(false, "Buscar carpeta principal");
+    }
+  }
+
+  private setButtonState(disabled: boolean, text: string): void {
+    this.selectFolderBtn.disabled = disabled;
+    this.selectFolderBtn.textContent = text;
+  }
+
+  private updateFolderPath(path: string): void {
+    this.folderPathDiv.textContent = path;
+    this.folderPathDiv.classList.remove("no-folder");
+  }
+
+  private showError(message: string): void {
+    this.errorDiv.textContent = message;
+    this.errorDiv.style.display = "block";
+  }
+
+  private hideError(): void {
+    this.errorDiv.style.display = "none";
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  new FolderSelector();
+});
