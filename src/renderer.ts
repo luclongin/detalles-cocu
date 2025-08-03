@@ -190,7 +190,7 @@ class StudentSearchApp {
             this.showMessage(`Error searching student: ${(error as Error).message}`, 'error');
             this.hideResults();
         } finally {
-            this.setButtonState(this.searchBtn, false, 'Search');
+            this.setButtonState(this.searchBtn, false, 'Buscar');
         }
     }
 

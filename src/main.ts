@@ -260,6 +260,25 @@ async function searchInExcelFile(filePath: string, fileName: string, studentId: 
 
     console.log(`Processing ${workbook.SheetNames.length} sheets in ${fileName}`);
 
+    // Helper function to get cell comment text
+    function getCellComment(worksheet: any, cellAddress: string): string {
+      const cell = worksheet[cellAddress];
+      if (cell && cell.c && Array.isArray(cell.c)) {
+        return cell.c.map((comment: any) => comment.t || '').join(' ').trim();
+      }
+      return '';
+    }
+
+    // Helper function to convert column index to Excel column letter
+    function columnIndexToLetter(index: number): string {
+      let result = '';
+      while (index >= 0) {
+        result = String.fromCharCode(65 + (index % 26)) + result;
+        index = Math.floor(index / 26) - 1;
+      }
+      return result;
+    }
+
     // Process each worksheet
     workbook.SheetNames.forEach((sheetName, sheetIndex) => {
       try {
@@ -292,32 +311,16 @@ async function searchInExcelFile(filePath: string, fileName: string, studentId: 
         }
 
         // Assume first row contains headers
-        const headers = data[0] as string[];
+        const originalHeaders = data[0] as string[];
         const rows = data.slice(1);
 
-        if (!headers || headers.length === 0) {
+        if (!originalHeaders || originalHeaders.length === 0) {
           console.log(`    Sheet ${sheetName} has no headers`);
           return;
         }
 
-        // Helper function to get cell comment text
-        function getCellComment(worksheet: any, cellAddress: string): string {
-          const cell = worksheet[cellAddress];
-          if (cell && cell.c && Array.isArray(cell.c)) {
-            return cell.c.map((comment: any) => comment.t || '').join(' ').trim();
-          }
-          return '';
-        }
-
-        // Helper function to convert column index to Excel column letter
-        function columnIndexToLetter(index: number): string {
-          let result = '';
-          while (index >= 0) {
-            result = String.fromCharCode(65 + (index % 26)) + result;
-            index = Math.floor(index / 26) - 1;
-          }
-          return result;
-        }
+        // Use original headers as-is (we'll append comments to individual data cells)
+        const headers = originalHeaders.map(header => String(header || '').trim());
 
         console.log(`    Sheet has ${headers.length} columns and ${rows.length} data rows`);
 
@@ -332,7 +335,7 @@ async function searchInExcelFile(filePath: string, fileName: string, studentId: 
 
         console.log(`    Student ID column found at index ${studentIdColumnIndex}: "${headers[studentIdColumnIndex]}"`);
 
-        // Find the special columns
+        // Find the special columns (using original headers)
         const revisionesPendientesCocurricularesIndex = headers.findIndex(header =>
           String(header || '').toLowerCase().trim() === 'revisiones pendientes cocurriculares'
         );
@@ -353,6 +356,22 @@ async function searchInExcelFile(filePath: string, fileName: string, studentId: 
           if (cellValue === studentId) {
             matchCount++;
 
+            // Helper function to get header with comment if applicable
+            const getHeaderWithComment = (header: string, actualColIndex: number, currentRowIndex: number): string => {
+              const headerStr = String(header || '').trim();
+
+              if (headerStr.toLowerCase().includes('revisiones pendientes')) {
+                const cellAddress = `${columnIndexToLetter(actualColIndex)}${currentRowIndex + 2}`; // +2 because rowIndex is 0-based and we have header row
+                const comment = getCellComment(worksheet, cellAddress);
+
+                if (comment) {
+                  return `${headerStr} - ${comment}`;
+                }
+              }
+
+              return headerStr;
+            };
+
             // Handle column structure scenarios
             let cocurricularesData: Record<string, any> = {};
             let liderazgoData: Record<string, any> = {};
@@ -364,7 +383,8 @@ async function searchInExcelFile(filePath: string, fileName: string, studentId: 
               cocurricularesHeaders.forEach((header, colIndex) => {
                 const actualColIndex = revisionesPendientesCocurricularesIndex + colIndex;
                 if (header && actualColIndex < row.length && row[actualColIndex] !== undefined && row[actualColIndex] !== '') {
-                  cocurricularesData[header] = row[actualColIndex];
+                  const headerWithComment = getHeaderWithComment(header, actualColIndex, rowIndex);
+                  cocurricularesData[headerWithComment] = row[actualColIndex];
                 }
               });
 
@@ -373,7 +393,8 @@ async function searchInExcelFile(filePath: string, fileName: string, studentId: 
               liderazgoHeaders.forEach((header, colIndex) => {
                 const actualColIndex = revisionesPendientesLiderazgoIndex + colIndex;
                 if (header && actualColIndex < row.length && row[actualColIndex] !== undefined && row[actualColIndex] !== '') {
-                  liderazgoData[header] = row[actualColIndex];
+                  const headerWithComment = getHeaderWithComment(header, actualColIndex, rowIndex);
+                  liderazgoData[headerWithComment] = row[actualColIndex];
                 }
               });
 
@@ -384,7 +405,8 @@ async function searchInExcelFile(filePath: string, fileName: string, studentId: 
               cocurricularesHeaders.forEach((header, colIndex) => {
                 const actualColIndex = revisionesPendientesCocurricularesIndex + colIndex;
                 if (header && actualColIndex < row.length && row[actualColIndex] !== undefined && row[actualColIndex] !== '') {
-                  cocurricularesData[header] = row[actualColIndex];
+                  const headerWithComment = getHeaderWithComment(header, actualColIndex, rowIndex);
+                  cocurricularesData[headerWithComment] = row[actualColIndex];
                 }
               });
               // Liderazgo remains empty
@@ -396,7 +418,8 @@ async function searchInExcelFile(filePath: string, fileName: string, studentId: 
               liderazgoHeaders.forEach((header, colIndex) => {
                 const actualColIndex = revisionesPendientesLiderazgoIndex + colIndex;
                 if (header && actualColIndex < row.length && row[actualColIndex] !== undefined && row[actualColIndex] !== '') {
-                  liderazgoData[header] = row[actualColIndex];
+                  const headerWithComment = getHeaderWithComment(header, actualColIndex, rowIndex);
+                  liderazgoData[headerWithComment] = row[actualColIndex];
                 }
               });
               // Cocurriculares remains empty
@@ -431,7 +454,6 @@ async function searchInExcelFile(filePath: string, fileName: string, studentId: 
 
   return results;
 }
-
 function extractDateFromPath(filePath: string, fileName: string): { year: string; month: string } {
   // First try to extract from folder structure (e.g., /path/to/2024/01/file.xlsx)
   const pathParts = filePath.split(path.sep);
