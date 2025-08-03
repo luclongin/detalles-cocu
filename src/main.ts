@@ -75,14 +75,14 @@ app.on("activate", () => {
 
 // IPC handler for folder selection
 ipcMain.handle("select-folder", async () => {
-  /* const result = await dialog.showOpenDialog({
+  const result = await dialog.showOpenDialog({
     properties: ["openDirectory"],
   });
   if (result.canceled) {
     return null;
   }
-  return result.filePaths[0]; */
-  return '/Users/luc/Downloads/basededatos';
+  return result.filePaths[0];
+  /* return '/Users/luc/Downloads/basededatos'; */
 });
 
 // Handler for student search
