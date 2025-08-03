@@ -44,12 +44,11 @@ button {
   background-color: #007acc;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 11px 24px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
   margin-right: 10px;
-  margin-bottom: 10px;
 }
 
 button:hover {
@@ -75,7 +74,6 @@ input[type="text"] {
   border-radius: 4px;
   font-size: 16px;
   width: 200px;
-  margin-right: 10px;
 }
 
 .folder-path {
@@ -85,7 +83,6 @@ input[type="text"] {
   border-radius: 4px;
   word-break: break-all;
   font-family: monospace;
-  min-height: 20px;
   margin-top: 10px;
 }
 
@@ -158,9 +155,22 @@ input[type="text"] {
   border-bottom: 1px solid #eee;
 }
 
+.data-table .data-value {
+  text-align: right;
+}
+
 .data-table th {
   background-color: #f5f5f5;
   font-weight: bold;
+}
+
+.revisiones-pendientes {
+  background-color: rgba(255, 255, 0, 0.1);
+}
+
+.total-row {
+  background-color: rgba(0, 0, 0, 0.05);
+  font-weight: 500;
 }
 
 .no-results {
@@ -185,4 +195,8 @@ input[type="text"] {
   margin-bottom: 15px;
   font-weight: bold;
   color: #1976d2;
+}
+
+.result-card {
+  margin-bottom: 24px;
 }

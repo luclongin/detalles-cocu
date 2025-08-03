@@ -12,7 +12,7 @@
         <p class="title-description">
           La carpeta raiz que contiene las carpetas "2024", "2025", ...
         </p>
-        <button id="selectFolderBtn">Buscar carpeta principal</button>
+        <button id="selectFolderBtn">Buscar base de datos</button>
         <div>
           <div id="folderPath" class="folder-path no-folder">
             Ninguna carpeta seleccionada
@@ -26,21 +26,18 @@
           <input
             type="text"
             id="studentIdInput"
-            placeholder="Enter Student ID"
+            placeholder="Ingresar Código PUCP"
+            value="20062221"
           />
-          <button id="searchBtn" class="search-button" disabled>Search</button>
+          <button id="searchBtn" class="search-button">Buscar</button>
         </div>
-        <button
-          type="submit"
-          id="submitCode"
-          name="submitCode"
-          class="search-button"
-        >
-          Buscar
-        </button>
       </div>
-      <div class="section">
-        <h2>3. Resultados</h2>
+      <div id="message" style="display: none"></div>
+
+      <div class="results" id="resultsSection" style="display: none">
+        <h3>3. Resultados</h3>
+        <div id="resultsSummary" class="results-summary"></div>
+        <div id="resultsContainer"></div>
       </div>
     </div>
     <script type="module" src="/src/renderer.ts"></script>
